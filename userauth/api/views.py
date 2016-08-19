@@ -8,12 +8,15 @@ from django.utils.translation import gettext as _
 
 from allauth.account import app_settings as allauth_settings
 from django.contrib.auth import authenticate, login, logout
+# from .models import User
 
 from rest_framework.filters import (
         SearchFilter,
         OrderingFilter,
     )
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
+# from .models import TokenModel
+# from .utils import jwt_encode
 
 from rest_framework.generics import (
     CreateAPIView,
@@ -36,12 +39,11 @@ from rest_framework.permissions import (
 from .serializers import ( 
     UserCreateSerializer,
     UserLoginSerializer,
-    ResetSerializer,
     UserForgetPasswordSerializer,
-    UserSerializer,
     PasswordChangeSerializer,
     PasswordResetSerializer,
     PasswordResetConfirmSerializer,
+    # LoginSerializer,
     )
 
 User=get_user_model()
@@ -63,28 +65,11 @@ class PasswordChangeView(GenericAPIView):
         return Response({"success": _("New password has been saved.")})
 
 
-
-class UserChangePassword(APIView):
-        serializer_class = UserSerializer()
-        def patch(self, request):
-            user = self.request.user
-            serialized = UserSerializer()
-            if serialized.is_valid():
-                user.set_password(serialized.data['password'])
-                user.save()
-                return Response()
-            else:
-                return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class UserResetAPIView(CreateAPIView):
-    serializer_class = ResetSerializer
-    queryset = User.objects.all()
-    permission_classes = [AllowAny]
-
 class UserCreateAPIView(CreateAPIView):
     serializer_class = UserCreateSerializer
     queryset = User.objects.all()
     permission_classes = [AllowAny]
+    
 
 class UserLoginAPIView(APIView):
     permission_classes = [AllowAny] 
@@ -98,10 +83,7 @@ class UserLoginAPIView(APIView):
             return Response(new_data, status=HTTP_200_OK)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)     
 
-class UserForgetPasswordAPIView(CreateAPIView):
-    serializer_class = UserForgetPasswordSerializer
-    queryset = User.objects.all()
-    permission_classes = [AllowAny]
+
 
 class LogoutView(APIView):
 
@@ -181,3 +163,114 @@ class PasswordResetConfirmView(GenericAPIView):
         serializer.save()
         return Response({"success": _("Password has been reset with the new password.")})
 
+# class LoginView(GenericAPIView):
+
+#     """
+#     Check the credentials and return the REST Token
+#     if the credentials are valid and authenticated.
+#     Calls Django Auth login method to register User ID
+#     in Django session framework
+#     Accept the following POST parameters: username, password
+#     Return the REST Framework Token Object's key.
+#     """
+#     permission_classes = (AllowAny,)
+#     serializer_class = LoginSerializer
+#     token_model = TokenModel
+
+#     def process_login(self):
+#         django_login(self.request, self.user)
+
+#     def get_response_serializer(self):
+#         if getattr(settings, 'REST_USE_JWT', False):
+#             response_serializer = JWTSerializer
+#         else:
+#             response_serializer = TokenSerializer
+#         return response_serializer
+
+#     def login(self):
+#         self.user = self.serializer.validated_data['user']
+
+#         if getattr(settings, 'REST_USE_JWT', False):
+#             self.token = jwt_encode(self.user)
+#         else:
+#             self.token = create_token(self.token_model, self.user, self.serializer)
+
+#         if getattr(settings, 'REST_SESSION_LOGIN', True):
+#             self.process_login()
+
+#     def get_response(self):
+#         serializer_class = self.get_response_serializer()
+
+#         if getattr(settings, 'REST_USE_JWT', False):
+#             data = {
+#                 'user': self.user,
+#                 'token': self.token
+#             }
+#             serializer = serializer_class(instance=data, context={'request': self.request})
+#         else:
+#             serializer = serializer_class(instance=self.token, context={'request': self.request})
+
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     def post(self, request, *args, **kwargs):
+#         self.request = request
+#         self.serializer = self.get_serializer(data=self.request.data)
+#         self.serializer.is_valid(raise_exception=True)
+
+#         self.login()
+#         return self.get_response()class LoginView(GenericAPIView):
+
+#     """
+#     Check the credentials and return the REST Token
+#     if the credentials are valid and authenticated.
+#     Calls Django Auth login method to register User ID
+#     in Django session framework
+#     Accept the following POST parameters: username, password
+#     Return the REST Framework Token Object's key.
+#     """
+#     permission_classes = (AllowAny,)
+#     serializer_class = LoginSerializer
+#     token_model = TokenModel
+
+#     def process_login(self):
+#         django_login(self.request, self.user)
+
+#     def get_response_serializer(self):
+#         if getattr(settings, 'REST_USE_JWT', False):
+#             response_serializer = JWTSerializer
+#         else:
+#             response_serializer = TokenSerializer
+#         return response_serializer
+
+#     def login(self):
+#         self.user = self.serializer.validated_data['user']
+
+#         if getattr(settings, 'REST_USE_JWT', False):
+#             self.token = jwt_encode(self.user)
+#         else:
+#             self.token = create_token(self.token_model, self.user, self.serializer)
+
+#         if getattr(settings, 'REST_SESSION_LOGIN', True):
+#             self.process_login()
+
+#     def get_response(self):
+#         serializer_class = self.get_response_serializer()
+
+#         if getattr(settings, 'REST_USE_JWT', False):
+#             data = {
+#                 'user': self.user,
+#                 'token': self.token
+#             }
+#             serializer = serializer_class(instance=data, context={'request': self.request})
+#         else:
+#             serializer = serializer_class(instance=self.token, context={'request': self.request})
+
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     def post(self, request, *args, **kwargs):
+#         self.request = request
+#         self.serializer = self.get_serializer(data=self.request.data)
+#         self.serializer.is_valid(raise_exception=True)
+
+#         self.login()
+#         return self.get_response()
