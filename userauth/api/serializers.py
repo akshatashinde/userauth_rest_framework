@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from rest_framework import settings
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode as uid_decoder
 
 from rest_framework.serializers import (
 	EmailField,
